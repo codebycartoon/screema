@@ -4,6 +4,10 @@ A modern, responsive movie ticket booking platform built with React, TypeScript,
 
 ![React](https://img.shields.io/badge/React-18.3.1-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)
 
+## 🌐 Live Demo
+
+**[View Live Demo →](https://screema.vercel.app)**
+
 ## 📸 Screenshots
 
 ### Homepage
