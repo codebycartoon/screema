@@ -2,7 +2,19 @@
 
 A modern, responsive movie ticket booking platform built with React, TypeScript, and Tailwind CSS. Features an elegant UI with smooth animations, seat selection, showtime booking, and user authentication.
 
-![CineSeat Pro](https://img.shields.io/badge/React-18.3.1-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)
+![React](https://img.shields.io/badge/React-18.3.1-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-blue)
+
+## 📸 Screenshots
+
+### Homepage
+![Homepage](screenshots/Homepage.png)
+
+### Movie Details & Showtimes
+![Movie Details](screenshots/Movie-details.png)
+![Showtimes](screenshots/Showtimes.png)
+
+### Interactive Seat Selection
+![Seat Selection](screenshots/Seat-Selection.png)
 
 ## ✨ Features
 
