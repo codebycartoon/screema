@@ -76,31 +76,40 @@ const Payment = () => {
   };
 
   const handlePayment = async () => {
+    console.log('Payment started', { bookingData, user });
     setIsProcessing(true);
 
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     try {
-      if (!bookingData || !user) {
-        throw new Error('Missing booking data or user');
+      // Validate data
+      if (!bookingData) {
+        throw new Error('No booking data found. Please select seats again.');
       }
+      
+      if (!user) {
+        throw new Error('Please sign in to complete booking.');
+      }
+
+      if (!bookingData.seats || bookingData.seats.length === 0) {
+        throw new Error('No seats selected. Please select seats.');
+      }
+
+      // Simulate payment processing
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Generate QR code
       const qrCode = `QR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
       
-      // Store booking in localStorage for demo
-      const existingBookings = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
+      // Create booking object
       const newBooking = {
         id: Date.now().toString(),
         user_id: user.id,
-        movie_title: bookingData.movieTitle,
-        movie_poster: bookingData.moviePoster,
-        theater_name: bookingData.theaterName,
-        screen_name: bookingData.screenName,
-        showtime: bookingData.showtime.toISOString(),
+        movie_title: bookingData.movieTitle || 'Unknown Movie',
+        movie_poster: bookingData.moviePoster || '',
+        theater_name: bookingData.theaterName || 'Unknown Theater',
+        screen_name: bookingData.screenName || 'Unknown Screen',
+        showtime: bookingData.showtime ? bookingData.showtime.toISOString() : new Date().toISOString(),
         seats: bookingData.seats,
-        total_amount: bookingData.totalAmount + 1.5, // Include service fee
+        total_amount: (bookingData.totalAmount || 0) + 1.5, // Include service fee
         payment_status: 'paid',
         payment_method: paymentMethod,
         qr_code: qrCode,
@@ -108,15 +117,21 @@ const Payment = () => {
         created_at: new Date().toISOString(),
       };
       
+      console.log('Saving booking:', newBooking);
+      
+      // Store booking in localStorage for demo
+      const existingBookings = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
       existingBookings.push(newBooking);
       localStorage.setItem('demo_bookings', JSON.stringify(existingBookings));
+
+      console.log('Booking saved successfully');
 
       toast({
         title: 'Payment Successful! 🎉',
         description: 'Your tickets have been booked. Check your bookings for the QR code.',
       });
 
-      // Small delay before navigation
+      // Navigate to bookings
       setTimeout(() => {
         navigate('/bookings');
       }, 500);
