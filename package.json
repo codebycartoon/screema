@@ -1,14 +1,45 @@
 {
   "name": "screema",
-  "private": true,
   "version": "1.0.0",
+  "description": "Modern cinema ticket booking platform with real-time seat selection, authentication, and payment integration",
+  "author": {
+    "name": "Frankline Onguti",
+    "email": "franklineonguti4@gmail.com",
+    "url": "https://github.com/codebycartoon"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codebycartoon/screema.git"
+  },
+  "bugs": {
+    "url": "https://github.com/codebycartoon/screema/issues"
+  },
+  "homepage": "https://screema.vercel.app",
+  "keywords": [
+    "cinema",
+    "ticket-booking",
+    "react",
+    "typescript",
+    "vite",
+    "tailwindcss",
+    "shadcn-ui",
+    "movie-booking",
+    "seat-selection"
+  ],
+  "private": false,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "build:analyze": "vite build --mode analyze",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "lint:fix": "eslint . --fix",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\"",
+    "clean": "rm -rf dist node_modules/.vite"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
