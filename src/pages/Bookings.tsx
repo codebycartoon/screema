@@ -47,13 +47,10 @@ const Bookings = () => {
 
   const fetchBookings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .order('created_at', { ascending: false }) as { data: Booking[] | null, error: any };
-
-      if (error) throw error;
-      setBookings(data || []);
+      // For demo: Load from localStorage
+      const demoBookings = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
+      const userBookings = demoBookings.filter((b: any) => b.user_id === user?.id);
+      setBookings(userBookings);
     } catch (error) {
       toast({
         title: 'Error',
@@ -67,15 +64,16 @@ const Bookings = () => {
 
   const handleCancelBooking = async (bookingId: string) => {
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ 
-          payment_status: 'cancelled',
-          cancelled_at: new Date().toISOString() 
-        } as any)
-        .eq('id', bookingId);
-
-      if (error) throw error;
+      // For demo: Update localStorage
+      const demoBookings = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
+      const updatedBookings = demoBookings.map((b: any) => 
+        b.id === bookingId 
+          ? { ...b, status: 'cancelled', payment_status: 'refunded', cancelled_at: new Date().toISOString() }
+          : b
+      );
+      localStorage.setItem('demo_bookings', JSON.stringify(updatedBookings));
+      
+      fetchBookings();
 
       toast({
         title: 'Booking Cancelled',

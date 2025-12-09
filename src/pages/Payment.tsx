@@ -82,32 +82,42 @@ const Payment = () => {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     try {
-      const bookingInsert = {
+      // For demo: Create a mock booking record
+      // In production, this would use the reserve_seats() function with real showtime_id
+      
+      // Generate QR code
+      const qrCode = `QR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
+      
+      // Store booking in localStorage for demo
+      const existingBookings = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
+      const newBooking = {
+        id: Date.now().toString(),
         user_id: user!.id,
-        movie_id: bookingData.movieId,
         movie_title: bookingData.movieTitle,
         movie_poster: bookingData.moviePoster,
         theater_name: bookingData.theaterName,
         screen_name: bookingData.screenName,
         showtime: bookingData.showtime.toISOString(),
         seats: bookingData.seats,
-        total_amount: bookingData.totalAmount,
-        payment_status: 'completed',
+        total_amount: bookingData.totalAmount + 1.5, // Include service fee
+        payment_status: 'paid',
         payment_method: paymentMethod,
-        qr_code: `QR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`,
+        qr_code: qrCode,
+        status: 'confirmed',
+        created_at: new Date().toISOString(),
       };
       
-      const { error } = await supabase.from('bookings').insert(bookingInsert as any);
-
-      if (error) throw error;
+      existingBookings.push(newBooking);
+      localStorage.setItem('demo_bookings', JSON.stringify(existingBookings));
 
       toast({
-        title: 'Payment Successful!',
+        title: 'Payment Successful! 🎉',
         description: 'Your tickets have been booked. Check your bookings for the QR code.',
       });
 
       navigate('/bookings');
     } catch (error) {
+      console.error('Payment error:', error);
       toast({
         title: 'Payment Failed',
         description: 'Something went wrong. Please try again.',
