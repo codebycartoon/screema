@@ -124,9 +124,9 @@ export const generateShowtimes = (movieId: string): Showtime[] => {
           time,
           date: new Date().toISOString().split('T')[0],
           price: {
-            standard: screen.type === 'IMAX' ? 18 : screen.type === 'Dolby' ? 16 : 12,
-            premium: screen.type === 'IMAX' ? 24 : screen.type === 'Dolby' ? 22 : 16,
-            vip: screen.type === 'IMAX' ? 35 : screen.type === 'Dolby' ? 32 : 25
+            standard: screen.type === 'IMAX' ? 800 : screen.type === 'Dolby' ? 700 : 500,
+            premium: screen.type === 'IMAX' ? 1000 : screen.type === 'Dolby' ? 900 : 700,
+            vip: screen.type === 'IMAX' ? 1500 : screen.type === 'Dolby' ? 1300 : 1000
           }
         });
       });

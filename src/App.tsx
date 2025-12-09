@@ -10,6 +10,8 @@ import MovieDetail from "./pages/MovieDetail";
 import Auth from "./pages/Auth";
 import Payment from "./pages/Payment";
 import Bookings from "./pages/Bookings";
+import Profile from "./pages/Profile";
+import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/payment" element={<Payment />} />
               <Route path="/bookings" element={<Bookings />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/help" element={<Help />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

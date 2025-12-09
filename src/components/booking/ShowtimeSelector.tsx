@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Showtime } from "@/types/cinema";
 import { theaters } from "@/data/movies";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { MapPin, Calendar } from "lucide-react";
 
 interface ShowtimeSelectorProps {
@@ -117,7 +117,7 @@ const ShowtimeSelector = ({ showtimes, selectedShowtime, onSelect }: ShowtimeSel
                         >
                           <span>{showtime.time}</span>
                           <span className="block text-xs opacity-70 mt-0.5">
-                            ${showtime.price.standard}
+                            {formatCurrency(showtime.price.standard)}
                           </span>
                         </button>
                       ))}

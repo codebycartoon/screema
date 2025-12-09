@@ -48,9 +48,9 @@ interface Movie {
 #### Seat Map
 - **Visual Layout**: Theater-style seat arrangement
 - **Seat Types**:
-  - Regular ($12.99)
-  - Premium ($15.99)
-  - VIP ($19.99)
+  - Standard (KSh 1,200 - 1,800)
+  - Premium (KSh 1,600 - 2,400)
+  - VIP (KSh 2,500 - 3,500)
 - **Real-time Status**:
   - Available (green)
   - Selected (blue)
@@ -250,7 +250,122 @@ interface Booking {
 
 ---
 
-### 7. QR Code Tickets
+### 7. Boarding Pass Style Ticket Modal
+
+#### Beautiful Ticket Design
+- **Cinema-style Layout**: Authentic boarding pass design
+- **Perforated Line**: Visual separator between sections
+- **Movie Information Section**:
+  - Movie title and poster
+  - Date and time
+  - Venue and screen
+  - Seat numbers
+  - Ticket ID
+- **QR Code Section**: Large scannable code
+- **Status Indicator**: Confirmed/Pending badge
+- **Action Buttons**: Download and share ticket
+
+#### User Experience
+- Modal overlay with smooth animations
+- Mobile-responsive design
+- Print-friendly layout
+- Easy access from bookings dashboard
+
+**Implementation:**
+```typescript
+interface TicketModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  booking: {
+    id: string;
+    movie_title: string;
+    movie_poster: string | null;
+    theater_name: string;
+    screen_name: string;
+    showtime: string;
+    seats: string[];
+    total_amount: number;
+    qr_code: string | null;
+    status: string;
+  };
+}
+```
+
+---
+
+### 8. Profile Settings Page
+
+#### Personal Information
+- **Profile Avatar**: Display user initials or photo
+- **Edit Profile**: Update name, phone number
+- **Email Display**: View email (cannot be changed)
+- **Avatar Upload**: Change profile picture
+
+#### Notification Preferences
+- **Email Notifications**: Booking confirmations and updates
+- **SMS Notifications**: Text message alerts
+- **Promotional Emails**: Special offers and recommendations
+- **Toggle Controls**: Easy on/off switches
+
+#### Security Settings
+- **Password Management**: Change password
+- **Account Security**: Two-factor authentication (future)
+- **Login History**: View recent logins (future)
+
+#### Payment Methods
+- **Saved Cards**: Manage payment methods
+- **Add New Card**: Quick payment setup
+- **Default Payment**: Set preferred method
+
+#### Account Management
+- **Sign Out**: Secure logout
+- **Delete Account**: Account removal option
+- **Data Export**: Download user data (future)
+
+**Features:**
+- Real-time profile updates
+- Form validation
+- Success/error notifications
+- Responsive layout
+- Secure data handling
+
+---
+
+### 9. Help & Support Section
+
+#### Search Functionality
+- **Smart Search**: Find answers quickly
+- **Real-time Filtering**: Instant results
+- **Keyword Matching**: Search questions and answers
+
+#### FAQ Categories
+- **Booking**: How to book, modify, cancel
+- **Payment**: Payment methods, refunds, security
+- **Tickets**: Access, share, troubleshoot
+- **Account**: Registration, password, settings
+
+#### Contact Options
+- **Live Chat**: Real-time support (coming soon)
+- **Email Support**: support@screema.com
+- **Phone Support**: +1 (555) 123-4567
+- **Contact Form**: Submit detailed inquiries
+
+#### FAQ Management
+- **Expandable Sections**: Click to view answers
+- **Organized by Category**: Easy navigation
+- **Comprehensive Coverage**: 12+ common questions
+- **Clear Answers**: Detailed explanations
+
+**Sample FAQs:**
+- How do I book a movie ticket?
+- Can I cancel or modify my booking?
+- What payment methods do you accept?
+- How do I access my ticket?
+- Do I need an account to book tickets?
+
+---
+
+### 10. QR Code Tickets
 
 #### Generation
 - Unique QR code per booking
@@ -271,7 +386,7 @@ interface Booking {
 
 ---
 
-### 8. Responsive Design
+### 11. Responsive Design
 
 #### Mobile (< 768px)
 - Single column layout
@@ -304,7 +419,7 @@ xl: 1280px  /* Extra large */
 
 ---
 
-### 9. UI/UX Features
+### 12. UI/UX Features
 
 #### Animations
 - **Page Transitions**: Smooth route changes
@@ -332,7 +447,7 @@ xl: 1280px  /* Extra large */
 
 ---
 
-### 10. Performance Optimizations
+### 13. Performance Optimizations
 
 #### Code Splitting
 ```typescript
@@ -362,6 +477,15 @@ const Payment = lazy(() => import('./pages/Payment'));
 - First Contentful Paint: < 1.5s
 - Time to Interactive: < 3.5s
 - Lighthouse Score: 90+
+
+---
+
+## Recently Added Features ✨
+
+### December 2024 Updates
+- ✅ **Boarding Pass Style Ticket Modal**: Beautiful cinema-style ticket design with QR code
+- ✅ **Profile Settings Page**: Complete user profile management with notifications and security
+- ✅ **Help & Support Section**: Comprehensive FAQ system with contact options
 
 ---
 

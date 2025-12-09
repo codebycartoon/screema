@@ -2,6 +2,7 @@ import { Seat, Showtime, Movie } from "@/types/cinema";
 import { theaters } from "@/data/movies";
 import { Ticket, MapPin, Clock, Calendar, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@/lib/utils";
 
 interface BookingSummaryProps {
   movie: Movie;
@@ -27,7 +28,7 @@ const BookingSummary = ({ movie, showtime, selectedSeats, onConfirm }: BookingSu
   };
 
   const total = calculateTotal();
-  const serviceFee = total * 0.1;
+  const serviceFee = 150; // Fixed KSh 150 service fee
   const grandTotal = total + serviceFee;
 
   return (
@@ -111,15 +112,15 @@ const BookingSummary = ({ movie, showtime, selectedSeats, onConfirm }: BookingSu
         <div className="space-y-2 mb-6">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Tickets ({selectedSeats.length})</span>
-            <span>${total.toFixed(2)}</span>
+            <span>{formatCurrency(total)}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Service Fee</span>
-            <span>${serviceFee.toFixed(2)}</span>
+            <span>{formatCurrency(serviceFee)}</span>
           </div>
           <div className="flex justify-between font-semibold text-lg pt-2 border-t border-border/50">
             <span>Total</span>
-            <span className="text-primary">${grandTotal.toFixed(2)}</span>
+            <span className="text-primary">{formatCurrency(grandTotal)}</span>
           </div>
         </div>
       )}

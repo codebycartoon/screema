@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Helmet } from 'react-helmet-async';
+import { formatCurrency } from '@/lib/utils';
 
 interface BookingData {
   movieId: string;
@@ -33,6 +34,7 @@ const Payment = () => {
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
   const [cardName, setCardName] = useState('');
+  const [mpesaNumber, setMpesaNumber] = useState('');
 
   const bookingData = location.state as BookingData | null;
 
@@ -117,9 +119,9 @@ const Payment = () => {
           const bookingData_db = {
             user_id: user.id,
             showtime_id: showtimes.id,
-            total_price: (bookingData.totalAmount || 0) + 1.5,
-            status: 'confirmed',
-            payment_status: 'paid',
+            total_price: (bookingData.totalAmount || 0) + 150,
+            status: 'pending',
+            payment_status: 'pending',
             qr_code: qrCode,
           };
           
@@ -146,6 +148,16 @@ const Payment = () => {
       
       // Always save to localStorage as primary storage for demo
       const existingBookings = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
+      
+      // Set showtime to tomorrow if it's in the past
+      let showtimeDate = bookingData.showtime ? new Date(bookingData.showtime) : new Date();
+      if (showtimeDate < new Date()) {
+        // Set to tomorrow at the same time
+        showtimeDate = new Date();
+        showtimeDate.setDate(showtimeDate.getDate() + 1);
+        showtimeDate.setHours(19, 30, 0, 0); // Default to 7:30 PM tomorrow
+      }
+      
       const newBooking = {
         id: savedBooking?.id || Date.now().toString(),
         user_id: user.id,
@@ -153,13 +165,14 @@ const Payment = () => {
         movie_poster: bookingData.moviePoster,
         theater_name: bookingData.theaterName,
         screen_name: bookingData.screenName,
-        showtime: bookingData.showtime ? bookingData.showtime.toISOString() : new Date().toISOString(),
+        showtime: showtimeDate.toISOString(),
         seats: bookingData.seats,
-        total_price: (bookingData.totalAmount || 0) + 1.5,
-        payment_status: 'paid',
+        total_price: (bookingData.totalAmount || 0) + 150,
+        total_amount: (bookingData.totalAmount || 0) + 150,
+        payment_status: 'pending',
         payment_method: paymentMethod,
         qr_code: qrCode,
-        status: 'confirmed',
+        status: 'pending',
         created_at: new Date().toISOString(),
       };
       existingBookings.push(newBooking);
@@ -188,8 +201,25 @@ const Payment = () => {
     }
   };
 
-  const serviceFee = 1.5;
+  const serviceFee = 150; // KSh 150 service fee
   const grandTotal = bookingData.totalAmount + serviceFee;
+
+  // Validation for payment button
+  const isPaymentValid = () => {
+    if (paymentMethod === 'card') {
+      return (
+        cardName.trim() !== '' &&
+        cardNumber.replace(/\s/g, '').length >= 13 &&
+        expiryDate.length === 5 &&
+        cvv.length >= 3
+      );
+    } else if (paymentMethod === 'mpesa') {
+      return mpesaNumber.length === 9;
+    } else if (paymentMethod === 'wallet') {
+      return true; // E-wallet doesn't require fields
+    }
+    return false;
+  };
 
   return (
     <>
@@ -244,59 +274,62 @@ const Payment = () => {
                   >
                     <RadioGroupItem value="wallet" id="wallet" className="sr-only" />
                     <Wallet className="w-6 h-6" />
-                    <span className="text-sm font-medium">Wallet</span>
+                    <span className="text-sm font-medium">E-Wallet</span>
                   </Label>
 
                   <Label
-                    htmlFor="upi"
+                    htmlFor="mpesa"
                     className={`flex flex-col items-center gap-2 p-4 rounded-xl border cursor-pointer transition-all ${
-                      paymentMethod === 'upi'
+                      paymentMethod === 'mpesa'
                         ? 'border-primary bg-primary/10'
                         : 'border-border/50 hover:border-primary/50'
                     }`}
                   >
-                    <RadioGroupItem value="upi" id="upi" className="sr-only" />
+                    <RadioGroupItem value="mpesa" id="mpesa" className="sr-only" />
                     <Smartphone className="w-6 h-6" />
-                    <span className="text-sm font-medium">UPI</span>
+                    <span className="text-sm font-medium">M-PESA</span>
                   </Label>
                 </RadioGroup>
 
                 {paymentMethod === 'card' && (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="cardName">Cardholder Name</Label>
+                      <Label htmlFor="cardName">Cardholder Name *</Label>
                       <Input
                         id="cardName"
                         placeholder="John Doe"
                         value={cardName}
                         onChange={(e) => setCardName(e.target.value)}
+                        required
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="cardNumber">Card Number</Label>
+                      <Label htmlFor="cardNumber">Card Number *</Label>
                       <Input
                         id="cardNumber"
                         placeholder="4242 4242 4242 4242"
                         value={cardNumber}
                         onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                         maxLength={19}
+                        required
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="expiry">Expiry Date</Label>
+                        <Label htmlFor="expiry">Expiry Date *</Label>
                         <Input
                           id="expiry"
                           placeholder="MM/YY"
                           value={expiryDate}
                           onChange={(e) => setExpiryDate(formatExpiry(e.target.value))}
                           maxLength={5}
+                          required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="cvv">CVV</Label>
+                        <Label htmlFor="cvv">CVV *</Label>
                         <Input
                           id="cvv"
                           placeholder="123"
@@ -304,6 +337,7 @@ const Payment = () => {
                           onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
                           maxLength={4}
                           type="password"
+                          required
                         />
                       </div>
                     </div>
@@ -313,18 +347,31 @@ const Payment = () => {
                 {paymentMethod === 'wallet' && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Wallet className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Demo wallet payment - Click "Pay Now" to simulate</p>
+                    <p>Demo e-wallet payment - Click "Pay Now" to simulate</p>
                   </div>
                 )}
 
-                {paymentMethod === 'upi' && (
+                {paymentMethod === 'mpesa' && (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="upiId">UPI ID</Label>
-                      <Input
-                        id="upiId"
-                        placeholder="yourname@upi"
-                      />
+                      <Label htmlFor="mpesaNumber">M-PESA Phone Number *</Label>
+                      <div className="flex gap-2">
+                        <div className="flex items-center px-3 rounded-lg border border-border bg-muted text-muted-foreground font-medium">
+                          +254
+                        </div>
+                        <Input
+                          id="mpesaNumber"
+                          placeholder="712345678"
+                          value={mpesaNumber}
+                          onChange={(e) => setMpesaNumber(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                          maxLength={9}
+                          className="flex-1"
+                          required
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Enter your Safaricom M-PESA number (9 digits after +254)
+                      </p>
                     </div>
                   </div>
                 )}
@@ -376,15 +423,15 @@ const Payment = () => {
                 <div className="border-t border-border/50 pt-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Tickets ({bookingData.seats.length})</span>
-                    <span>${bookingData.totalAmount.toFixed(2)}</span>
+                    <span>{formatCurrency(bookingData.totalAmount)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Service Fee</span>
-                    <span>${serviceFee.toFixed(2)}</span>
+                    <span>{formatCurrency(serviceFee)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg pt-2 border-t border-border/50">
                     <span>Total</span>
-                    <span className="text-primary">${grandTotal.toFixed(2)}</span>
+                    <span className="text-primary">{formatCurrency(grandTotal)}</span>
                   </div>
                 </div>
 
@@ -392,7 +439,7 @@ const Payment = () => {
                   variant="cinema"
                   className="w-full mt-6"
                   onClick={handlePayment}
-                  disabled={isProcessing}
+                  disabled={isProcessing || !isPaymentValid()}
                 >
                   {isProcessing ? (
                     <>
@@ -402,10 +449,17 @@ const Payment = () => {
                   ) : (
                     <>
                       <Check className="w-4 h-4 mr-2" />
-                      Pay ${grandTotal.toFixed(2)}
+                      Pay {formatCurrency(grandTotal)}
                     </>
                   )}
                 </Button>
+                
+                {!isPaymentValid() && !isProcessing && (
+                  <p className="text-xs text-center text-muted-foreground mt-3">
+                    {paymentMethod === 'card' && 'Please fill in all card details'}
+                    {paymentMethod === 'mpesa' && 'Please enter a valid M-PESA number'}
+                  </p>
+                )}
               </div>
             </div>
           </div>
