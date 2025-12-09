@@ -82,9 +82,10 @@ const Payment = () => {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     try {
-      // For demo: Create a mock booking record
-      // In production, this would use the reserve_seats() function with real showtime_id
-      
+      if (!bookingData || !user) {
+        throw new Error('Missing booking data or user');
+      }
+
       // Generate QR code
       const qrCode = `QR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
       
@@ -92,7 +93,7 @@ const Payment = () => {
       const existingBookings = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
       const newBooking = {
         id: Date.now().toString(),
-        user_id: user!.id,
+        user_id: user.id,
         movie_title: bookingData.movieTitle,
         movie_poster: bookingData.moviePoster,
         theater_name: bookingData.theaterName,
@@ -115,12 +116,15 @@ const Payment = () => {
         description: 'Your tickets have been booked. Check your bookings for the QR code.',
       });
 
-      navigate('/bookings');
-    } catch (error) {
+      // Small delay before navigation
+      setTimeout(() => {
+        navigate('/bookings');
+      }, 500);
+    } catch (error: any) {
       console.error('Payment error:', error);
       toast({
         title: 'Payment Failed',
-        description: 'Something went wrong. Please try again.',
+        description: error?.message || 'Something went wrong. Please try again.',
         variant: 'destructive',
       });
     } finally {
