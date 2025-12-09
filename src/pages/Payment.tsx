@@ -104,13 +104,16 @@ const Payment = () => {
       
       try {
         // Get first available showtime from database
-        const { data: showtimes } = await supabase
+        const { data: showtimes, error: showtimeError } = await supabase
           .from('showtimes')
           .select('id')
           .limit(1)
           .single();
 
-        if (showtimes) {
+        if (showtimeError) {
+          console.warn('⚠️ No showtimes found in database. Run supabase-seed-data.sql to populate data.');
+          console.warn('Booking will be saved to localStorage only.');
+        } else if (showtimes) {
           const bookingData_db = {
             user_id: user.id,
             showtime_id: showtimes.id,
@@ -120,7 +123,7 @@ const Payment = () => {
             qr_code: qrCode,
           };
           
-          console.log('Saving booking to database:', bookingData_db);
+          console.log('✅ Saving booking to database:', bookingData_db);
           
           const { data, error: bookingError } = await supabase
             .from('bookings')
@@ -130,13 +133,15 @@ const Payment = () => {
 
           if (!bookingError) {
             savedBooking = data;
-            console.log('Booking saved to database:', savedBooking);
+            console.log('✅ Booking saved to database successfully!', savedBooking);
           } else {
-            console.warn('Database save failed, using localStorage only:', bookingError);
+            console.warn('❌ Database save failed:', bookingError.message);
+            console.warn('Booking will be saved to localStorage only.');
           }
         }
-      } catch (dbError) {
-        console.warn('Database operation failed, using localStorage only:', dbError);
+      } catch (dbError: any) {
+        console.warn('❌ Database operation failed:', dbError?.message);
+        console.warn('Booking will be saved to localStorage only.');
       }
       
       // Always save to localStorage as primary storage for demo
