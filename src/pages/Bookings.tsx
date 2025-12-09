@@ -143,6 +143,25 @@ const Bookings = () => {
   const pastBookings = bookings.filter(
     (b) => !isUpcoming(b.showtime) || b.payment_status === 'cancelled'
   );
+  const cancelledBookings = bookings.filter((b) => b.payment_status === 'cancelled');
+
+  // Calculate time until movie starts
+  const getTimeUntil = (showtime: string) => {
+    const now = new Date();
+    const movieTime = new Date(showtime);
+    const diff = movieTime.getTime() - now.getTime();
+    
+    if (diff < 0) return 'Started';
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 24) {
+      const days = Math.floor(hours / 24);
+      return `in ${days}d ${hours % 24}h`;
+    }
+    return `in ${hours}h ${minutes}m`;
+  };
 
   return (
     <>
@@ -154,8 +173,28 @@ const Bookings = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="pt-24 pb-12">
-          <div className="container mx-auto px-4 max-w-4xl">
-            <h1 className="font-display text-3xl font-bold mb-8">My Bookings</h1>
+          <div className="container mx-auto px-4 max-w-6xl">
+            <h1 className="font-display text-3xl font-bold mb-8">My Dashboard</h1>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="glass rounded-xl p-4 border border-border/50">
+                <div className="text-2xl font-bold text-primary">{bookings.length}</div>
+                <div className="text-sm text-muted-foreground">Total Bookings</div>
+              </div>
+              <div className="glass rounded-xl p-4 border border-border/50">
+                <div className="text-2xl font-bold text-green-500">{upcomingBookings.length}</div>
+                <div className="text-sm text-muted-foreground">Upcoming</div>
+              </div>
+              <div className="glass rounded-xl p-4 border border-border/50">
+                <div className="text-2xl font-bold text-muted-foreground">{pastBookings.length - cancelledBookings.length}</div>
+                <div className="text-sm text-muted-foreground">Completed</div>
+              </div>
+              <div className="glass rounded-xl p-4 border border-border/50">
+                <div className="text-2xl font-bold text-destructive">{cancelledBookings.length}</div>
+                <div className="text-sm text-muted-foreground">Cancelled</div>
+              </div>
+            </div>
 
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
@@ -234,9 +273,14 @@ const Bookings = () => {
                               </div>
 
                               <div className="flex items-center justify-between">
-                                <span className="font-semibold text-primary">
-                                  ${booking.total_amount.toFixed(2)}
-                                </span>
+                                <div>
+                                  <span className="font-semibold text-primary text-lg">
+                                    ${booking.total_amount.toFixed(2)}
+                                  </span>
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    Starts {getTimeUntil(booking.showtime)}
+                                  </div>
+                                </div>
                                 <div className="flex gap-2">
                                   <Button
                                     variant="outline"
