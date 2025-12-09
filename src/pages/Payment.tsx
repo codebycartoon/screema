@@ -99,28 +99,44 @@ const Payment = () => {
       // Generate QR code
       const qrCode = `QR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
       
-      // Create booking object
-      const newBooking = {
-        id: Date.now().toString(),
+      // For now, we'll create a simple booking record
+      // In production, this would use reserve_seats() function with real showtime_id
+      const bookingData_db = {
         user_id: user.id,
-        movie_title: bookingData.movieTitle || 'Unknown Movie',
-        movie_poster: bookingData.moviePoster || '',
-        theater_name: bookingData.theaterName || 'Unknown Theater',
-        screen_name: bookingData.screenName || 'Unknown Screen',
-        showtime: bookingData.showtime ? bookingData.showtime.toISOString() : new Date().toISOString(),
-        seats: bookingData.seats,
-        total_amount: (bookingData.totalAmount || 0) + 1.5, // Include service fee
-        payment_status: 'paid',
-        payment_method: paymentMethod,
-        qr_code: qrCode,
+        showtime_id: '33333333-3333-3333-3333-333333333333', // Mock showtime ID
+        total_price: (bookingData.totalAmount || 0) + 1.5,
         status: 'confirmed',
-        created_at: new Date().toISOString(),
+        payment_status: 'paid',
+        qr_code: qrCode,
       };
       
-      console.log('Saving booking:', newBooking);
+      console.log('Saving booking to database:', bookingData_db);
       
-      // Store booking in localStorage for demo
+      // Save to Supabase
+      const { data: savedBooking, error: bookingError } = await supabase
+        .from('bookings')
+        .insert(bookingData_db)
+        .select()
+        .single();
+
+      if (bookingError) {
+        console.error('Database error:', bookingError);
+        throw new Error('Failed to save booking: ' + bookingError.message);
+      }
+
+      console.log('Booking saved to database:', savedBooking);
+      
+      // Also save to localStorage as backup for demo
       const existingBookings = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
+      const newBooking = {
+        ...savedBooking,
+        movie_title: bookingData.movieTitle,
+        movie_poster: bookingData.moviePoster,
+        theater_name: bookingData.theaterName,
+        screen_name: bookingData.screenName,
+        showtime: bookingData.showtime ? bookingData.showtime.toISOString() : new Date().toISOString(),
+        seats: bookingData.seats,
+      };
       existingBookings.push(newBooking);
       localStorage.setItem('demo_bookings', JSON.stringify(existingBookings));
 

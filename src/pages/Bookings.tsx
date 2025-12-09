@@ -47,11 +47,33 @@ const Bookings = () => {
 
   const fetchBookings = async () => {
     try {
-      // For demo: Load from localStorage
-      const demoBookings = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
-      const userBookings = demoBookings.filter((b: any) => b.user_id === user?.id);
-      setBookings(userBookings);
+      // Fetch from Supabase database
+      const { data: dbBookings, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      // Also get localStorage bookings for demo data
+      const localBookings = JSON.parse(localStorage.getItem('demo_bookings') || '[]')
+        .filter((b: any) => b.user_id === user?.id);
+
+      // Merge both sources (database + localStorage)
+      const allBookings = [...(dbBookings || []), ...localBookings];
+      
+      // Remove duplicates by ID
+      const uniqueBookings = allBookings.filter((booking, index, self) =>
+        index === self.findIndex((b) => b.id === booking.id)
+      );
+
+      setBookings(uniqueBookings as Booking[]);
     } catch (error) {
+      console.error('Fetch bookings error:', error);
       toast({
         title: 'Error',
         description: 'Failed to load bookings.',
@@ -64,11 +86,24 @@ const Bookings = () => {
 
   const handleCancelBooking = async (bookingId: string) => {
     try {
-      // For demo: Update localStorage
+      // Update in Supabase database
+      const { error: dbError } = await supabase
+        .from('bookings')
+        .update({ 
+          status: 'cancelled',
+          payment_status: 'refunded'
+        })
+        .eq('id', bookingId);
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+      }
+
+      // Also update localStorage
       const demoBookings = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
       const updatedBookings = demoBookings.map((b: any) => 
         b.id === bookingId 
-          ? { ...b, status: 'cancelled', payment_status: 'refunded', cancelled_at: new Date().toISOString() }
+          ? { ...b, status: 'cancelled', payment_status: 'refunded' }
           : b
       );
       localStorage.setItem('demo_bookings', JSON.stringify(updatedBookings));
