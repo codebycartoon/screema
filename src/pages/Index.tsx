@@ -2,6 +2,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/home/HeroSection";
 import MovieGrid from "@/components/home/MovieGrid";
+import ComingSoonSection from "@/components/home/ComingSoonSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import { Helmet } from "react-helmet-async";
 
@@ -18,6 +19,7 @@ const Index = () => {
         <main>
           <HeroSection />
           <MovieGrid />
+          <ComingSoonSection />
           <FeaturesSection />
         </main>
         <Footer />
