@@ -62,7 +62,7 @@ CREATE TABLE movies (
   duration INTEGER NOT NULL,
   release_date DATE,
   director TEXT,
-  cast TEXT[],
+  movie_cast TEXT[],
   language TEXT DEFAULT 'English',
   status TEXT DEFAULT 'now_showing' CHECK (status IN ('now_showing', 'coming_soon', 'archived')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
