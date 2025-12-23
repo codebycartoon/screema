@@ -13,17 +13,6 @@ describe('NavLink', () => {
     expect(screen.getByText('Test Link')).toBeInTheDocument()
   })
 
-  it('applies active class when current path matches', () => {
-    render(
-      <NavLink to="/" className="test-class">
-        Home
-      </NavLink>
-    )
-    
-    const link = screen.getByText('Home')
-    expect(link).toHaveClass('test-class')
-  })
-
   it('renders as a link element', () => {
     render(
       <NavLink to="/about" className="test-class">
@@ -33,5 +22,16 @@ describe('NavLink', () => {
     
     const link = screen.getByRole('link', { name: 'About' })
     expect(link).toHaveAttribute('href', '/about')
+  })
+
+  it('applies correct CSS classes', () => {
+    render(
+      <NavLink to="/home" className="nav-link">
+        Home
+      </NavLink>
+    )
+    
+    const link = screen.getByText('Home')
+    expect(link).toHaveClass('nav-link')
   })
 })
