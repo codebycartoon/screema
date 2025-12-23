@@ -1,5 +1,28 @@
 import { Movie, Showtime, Theater } from "@/types/cinema";
 
+// Hero carousel data types
+export interface HeroMovie extends Movie {
+  nextShowtime?: string;
+  seatAvailability: 'high' | 'medium' | 'low';
+  fromPrice: number;
+  trailerUrl?: string;
+}
+
+export interface ComingSoonMovie extends Movie {
+  trailerUrl?: string;
+}
+
+export interface Offer {
+  id: string;
+  headline: string;
+  value: string;
+  expiry: string;
+  badge: string;
+  isActive: boolean;
+  isPublic: boolean;
+  backdrop: string;
+}
+
 export const movies: Movie[] = [
   {
     id: "1",
@@ -90,8 +113,8 @@ export const movies: Movie[] = [
 export const theaters: Theater[] = [
   {
     id: "1",
-    name: "CinePlex Grand",
-    location: "Downtown Manhattan",
+    name: "SCREEMA Grand",
+    location: "Downtown Mombasa",
     screens: [
       { id: "s1", name: "Screen 1", type: "IMAX", rows: 12, seatsPerRow: 20 },
       { id: "s2", name: "Screen 2", type: "Dolby", rows: 10, seatsPerRow: 18 },
@@ -100,8 +123,8 @@ export const theaters: Theater[] = [
   },
   {
     id: "2",
-    name: "StarLight Cinema",
-    location: "Brooklyn Heights",
+    name: "SCREEMA Cinema",
+    location: "Nyali Heights",
     screens: [
       { id: "s4", name: "Screen A", type: "4DX", rows: 8, seatsPerRow: 14 },
       { id: "s5", name: "Screen B", type: "Standard", rows: 10, seatsPerRow: 16 }
@@ -124,9 +147,9 @@ export const generateShowtimes = (movieId: string): Showtime[] => {
           time,
           date: new Date().toISOString().split('T')[0],
           price: {
-            standard: screen.type === 'IMAX' ? 800 : screen.type === 'Dolby' ? 700 : 500,
-            premium: screen.type === 'IMAX' ? 1000 : screen.type === 'Dolby' ? 900 : 700,
-            vip: screen.type === 'IMAX' ? 1500 : screen.type === 'Dolby' ? 1300 : 1000
+            standard: screen.type === 'IMAX' ? 18 : screen.type === 'Dolby' ? 16 : 12,
+            premium: screen.type === 'IMAX' ? 24 : screen.type === 'Dolby' ? 22 : 16,
+            vip: screen.type === 'IMAX' ? 35 : screen.type === 'Dolby' ? 32 : 25
           }
         });
       });
@@ -134,4 +157,206 @@ export const generateShowtimes = (movieId: string): Showtime[] => {
   });
   
   return showtimes;
+};
+
+// Hero carousel data generators
+export const getNowShowingHero = (): HeroMovie[] => {
+  const today = new Date();
+  const nowShowing = movies.filter(movie => {
+    const releaseDate = new Date(movie.releaseDate);
+    return releaseDate <= today;
+  });
+
+  return nowShowing.slice(0, 5).map(movie => {
+    const showtimes = generateShowtimes(movie.id);
+    const nextShowtime = showtimes.length > 0 ? showtimes[0].time : undefined;
+    const basePrice = showtimes.length > 0 ? showtimes[0].price.standard : 12;
+    
+    // Generate stable seat availability based on movie ID
+    const movieIdNum = parseInt(movie.id);
+    const availabilityValue = (movieIdNum * 37) % 100; // Deterministic pseudo-random
+    const seatAvailability = availabilityValue > 70 ? 'low' : availabilityValue > 40 ? 'medium' : 'high';
+    
+    return {
+      ...movie,
+      nextShowtime,
+      seatAvailability,
+      fromPrice: basePrice,
+      trailerUrl: `https://youtube.com/watch?v=${movie.id}`
+    };
+  });
+};
+
+// Get all movies including coming soon ones
+export const getAllMovies = (): Movie[] => {
+  const today = new Date();
+  const comingSoon = movies.filter(movie => {
+    const releaseDate = new Date(movie.releaseDate);
+    return releaseDate > today;
+  });
+
+  // Add some future movies for demo - using dates definitely in the future
+  const futureMovies: Movie[] = [
+    {
+      id: "7",
+      title: "Blade Runner 2099",
+      poster: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=600&fit=crop",
+      backdrop: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1920&h=1080&fit=crop",
+      genre: ["Sci-Fi", "Thriller", "Action"],
+      rating: 0,
+      duration: 155,
+      releaseDate: "2025-06-15",
+      description: "The next chapter in the Blade Runner saga explores the future of humanity and artificial intelligence.",
+      director: "Denis Villeneuve",
+      cast: ["Ryan Gosling", "Ana de Armas", "Jared Leto"],
+      language: "English"
+    },
+    {
+      id: "8",
+      title: "Marvel's Fantastic Four",
+      poster: "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=400&h=600&fit=crop",
+      backdrop: "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=1920&h=1080&fit=crop",
+      genre: ["Action", "Adventure", "Sci-Fi"],
+      rating: 0,
+      duration: 140,
+      releaseDate: "2025-07-25",
+      description: "Marvel's first family joins the MCU in this highly anticipated superhero adventure.",
+      director: "Matt Shakman",
+      cast: ["Pedro Pascal", "Vanessa Kirby", "Joseph Quinn"],
+      language: "English"
+    },
+    {
+      id: "9",
+      title: "Avatar 3: The Seed Bearer",
+      poster: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=600&fit=crop",
+      backdrop: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&h=1080&fit=crop",
+      genre: ["Sci-Fi", "Adventure", "Action"],
+      rating: 0,
+      duration: 190,
+      releaseDate: "2025-12-20",
+      description: "Jake Sully and Neytiri's family faces new challenges as they explore uncharted territories of Pandora.",
+      director: "James Cameron",
+      cast: ["Sam Worthington", "Zoe Saldana", "Sigourney Weaver"],
+      language: "English"
+    },
+    {
+      id: "10",
+      title: "The Batman Part II",
+      poster: "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=400&h=600&fit=crop",
+      backdrop: "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=1920&h=1080&fit=crop",
+      genre: ["Action", "Crime", "Drama"],
+      rating: 0,
+      duration: 175,
+      releaseDate: "2025-10-03",
+      description: "Batman continues his war on crime in Gotham City, facing new villains and uncovering deeper conspiracies.",
+      director: "Matt Reeves",
+      cast: ["Robert Pattinson", "Zoë Kravitz", "Paul Dano"],
+      language: "English"
+    }
+  ];
+
+  return [...movies, ...futureMovies];
+};
+
+export const getComingSoonHero = (): ComingSoonMovie[] => {
+  // For demo purposes, always return the future movies regardless of current date
+  const futureMovies: ComingSoonMovie[] = [
+    {
+      id: "7",
+      title: "Blade Runner 2099",
+      poster: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=600&fit=crop",
+      backdrop: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1920&h=1080&fit=crop",
+      genre: ["Sci-Fi", "Thriller", "Action"],
+      rating: 0,
+      duration: 155,
+      releaseDate: "2025-06-15",
+      description: "The next chapter in the Blade Runner saga explores the future of humanity and artificial intelligence.",
+      director: "Denis Villeneuve",
+      cast: ["Ryan Gosling", "Ana de Armas", "Jared Leto"],
+      language: "English",
+      trailerUrl: "https://youtube.com/watch?v=7"
+    },
+    {
+      id: "8",
+      title: "Marvel's Fantastic Four",
+      poster: "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=400&h=600&fit=crop",
+      backdrop: "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=1920&h=1080&fit=crop",
+      genre: ["Action", "Adventure", "Sci-Fi"],
+      rating: 0,
+      duration: 140,
+      releaseDate: "2025-07-25",
+      description: "Marvel's first family joins the MCU in this highly anticipated superhero adventure.",
+      director: "Matt Shakman",
+      cast: ["Pedro Pascal", "Vanessa Kirby", "Joseph Quinn"],
+      language: "English",
+      trailerUrl: "https://youtube.com/watch?v=8"
+    },
+    {
+      id: "9",
+      title: "Avatar 3: The Seed Bearer",
+      poster: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=600&fit=crop",
+      backdrop: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&h=1080&fit=crop",
+      genre: ["Sci-Fi", "Adventure", "Action"],
+      rating: 0,
+      duration: 190,
+      releaseDate: "2025-12-20",
+      description: "Jake Sully and Neytiri's family faces new challenges as they explore uncharted territories of Pandora.",
+      director: "James Cameron",
+      cast: ["Sam Worthington", "Zoe Saldana", "Sigourney Weaver"],
+      language: "English",
+      trailerUrl: "https://youtube.com/watch?v=9"
+    },
+    {
+      id: "10",
+      title: "The Batman Part II",
+      poster: "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=400&h=600&fit=crop",
+      backdrop: "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=1920&h=1080&fit=crop",
+      genre: ["Action", "Crime", "Drama"],
+      rating: 0,
+      duration: 175,
+      releaseDate: "2025-10-03",
+      description: "Batman continues his war on crime in Gotham City, facing new villains and uncovering deeper conspiracies.",
+      director: "Matt Reeves",
+      cast: ["Robert Pattinson", "Zoë Kravitz", "Paul Dano"],
+      language: "English",
+      trailerUrl: "https://youtube.com/watch?v=10"
+    }
+  ];
+
+  return futureMovies;
+};
+
+export const getOffersHero = (): Offer[] => {
+  return [
+    {
+      id: "1",
+      headline: "Double Points Tuesday",
+      value: "2× points on all tickets",
+      expiry: "Ends in 3 days",
+      badge: "Auto-applied",
+      isActive: true,
+      isPublic: true,
+      backdrop: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1920&h=1080&fit=crop"
+    },
+    {
+      id: "2",
+      headline: "Student Discount",
+      value: "25% off with valid student ID",
+      expiry: "Valid all semester",
+      badge: "Show ID at counter",
+      isActive: true,
+      isPublic: true,
+      backdrop: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&h=1080&fit=crop"
+    },
+    {
+      id: "3",
+      headline: "IMAX Weekend Special",
+      value: "Buy 2 get 1 free IMAX tickets",
+      expiry: "Weekends only",
+      badge: "Premium screens",
+      isActive: true,
+      isPublic: true,
+      backdrop: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1920&h=1080&fit=crop"
+    }
+  ];
 };

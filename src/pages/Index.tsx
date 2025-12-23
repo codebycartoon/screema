@@ -1,9 +1,14 @@
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import HeroSection from "@/components/home/HeroSection";
-import MovieGrid from "@/components/home/MovieGrid";
+import HeroCarousel from "@/components/home/HeroCarousel";
+import NowShowingSection from "@/components/home/NowShowingSection";
 import ComingSoonSection from "@/components/home/ComingSoonSection";
-import FeaturesSection from "@/components/home/FeaturesSection";
+import ValuePropsSection from "@/components/home/ValuePropsSection";
+import CinemaLocationsSection from "@/components/home/CinemaLocationsSection";
+import SnacksPromoSection from "@/components/home/SnacksPromoSection";
+import TestimonialsSection from "@/components/home/TestimonialsSection";
+import DigitalTicketsSection from "@/components/home/DigitalTicketsSection";
+import NewsletterSection from "@/components/home/NewsletterSection";
 import { Helmet } from "react-helmet-async";
 
 const Index = () => {
@@ -17,10 +22,15 @@ const Index = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <main>
-          <HeroSection />
-          <MovieGrid />
+          <HeroCarousel />
+          <NowShowingSection />
           <ComingSoonSection />
-          <FeaturesSection />
+          <ValuePropsSection />
+          <CinemaLocationsSection />
+          <SnacksPromoSection />
+          <TestimonialsSection />
+          <DigitalTicketsSection />
+          <NewsletterSection />
         </main>
         <Footer />
       </div>

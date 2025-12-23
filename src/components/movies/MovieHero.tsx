@@ -1,13 +1,57 @@
 import { Movie } from "@/types/cinema";
-import { Star, Clock, Calendar, Play } from "lucide-react";
+import { Star, Clock, Calendar, Play, Heart, Check, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNotifications } from "@/hooks/useNotifications";
+import { toast } from "@/hooks/use-toast";
 
 interface MovieHeroProps {
   movie: Movie;
   onBookNow: () => void;
+  isComingSoon?: boolean;
 }
 
-const MovieHero = ({ movie, onBookNow }: MovieHeroProps) => {
+const MovieHero = ({ movie, onBookNow, isComingSoon = false }: MovieHeroProps) => {
+  const { addToWatchlist, removeFromWatchlist, watchlistItems } = useNotifications();
+
+  // Check if movie is already in watchlist
+  const isInWatchlist = watchlistItems.some(item => item.movieId === movie.id);
+
+  const handleWatchTrailer = () => {
+    // In a real app, this would open a trailer modal or navigate to trailer
+    alert(`Opening trailer for ${movie.title}`);
+  };
+
+  const handleGetNotified = () => {
+    // Add to watchlist for coming soon movies
+    if (!isInWatchlist) {
+      addToWatchlist(movie.id, movie.title, movie.poster);
+      toast({
+        title: "Notification Set",
+        description: `You'll be notified when ${movie.title} tickets are available.`,
+      });
+    }
+  };
+
+  const handleToggleWatchlist = () => {
+    if (isInWatchlist) {
+      // Find the watchlist item and remove it
+      const watchlistItem = watchlistItems.find(item => item.movieId === movie.id);
+      if (watchlistItem) {
+        removeFromWatchlist(watchlistItem.id);
+        toast({
+          title: "Removed from Watchlist",
+          description: `${movie.title} has been removed from your watchlist.`,
+        });
+      }
+    } else {
+      // Add to watchlist
+      addToWatchlist(movie.id, movie.title, movie.poster);
+      toast({
+        title: "Added to Watchlist",
+        description: `${movie.title} has been added to your watchlist.`,
+      });
+    }
+  };
   return (
     <div className="relative min-h-[80vh] flex items-end">
       {/* Background */}
@@ -78,13 +122,45 @@ const MovieHero = ({ movie, onBookNow }: MovieHeroProps) => {
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <Button variant="cinema" size="xl" onClick={onBookNow}>
-                Book Tickets
-              </Button>
-              <Button variant="glass" size="xl">
-                <Play className="w-5 h-5 mr-2" />
-                Watch Trailer
-              </Button>
+              {isComingSoon ? (
+                // Coming Soon Movie Buttons
+                <>
+                  <Button variant="cinema" size="xl" onClick={handleGetNotified}>
+                    <Bell className="w-5 h-5 mr-2" />
+                    Get Notified
+                  </Button>
+                  <Button variant="glass" size="xl" onClick={handleWatchTrailer}>
+                    <Play className="w-5 h-5 mr-2" />
+                    Watch Trailer
+                  </Button>
+                </>
+              ) : (
+                // Now Showing Movie Buttons
+                <>
+                  <Button variant="cinema" size="xl" onClick={handleWatchTrailer}>
+                    <Play className="w-5 h-5 mr-2" />
+                    Watch Trailer
+                  </Button>
+                  <Button 
+                    variant={isInWatchlist ? "default" : "glass"} 
+                    size="xl" 
+                    onClick={handleToggleWatchlist}
+                    className={isInWatchlist ? "bg-green-600 hover:bg-green-700" : ""}
+                  >
+                    {isInWatchlist ? (
+                      <>
+                        <Check className="w-5 h-5 mr-2" />
+                        Watchlisted
+                      </>
+                    ) : (
+                      <>
+                        <Heart className="w-5 h-5 mr-2" />
+                        Add to Watchlist
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
             </div>
 
             <div className="mt-8 pt-8 border-t border-border/50">

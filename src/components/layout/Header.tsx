@@ -1,7 +1,5 @@
-import { useState } from "react";
-import { Film, Search, User, LogOut, Loader2, LayoutDashboard, Settings, HelpCircle, X } from "lucide-react";
+import { Film, Search, User, Ticket, LogOut, Loader2, Star, Heart, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -11,57 +9,71 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { movies } from "@/data/movies";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import SearchModal from "./SearchModal";
+import { useState } from "react";
+import { toast } from "@/hooks/use-toast";
 
 const Header = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
+    try {
+      await signOut();
+      navigate('/');
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out of your account.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error signing out",
+        description: "There was a problem signing you out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSearchClick = () => {
+    setSearchOpen(true);
   };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
+          {/* LEFT: Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="relative">
               <Film className="w-8 h-8 text-primary transition-transform group-hover:scale-110" />
               <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <span className="font-display text-xl font-semibold tracking-tight">
-              SCREE<span className="text-primary">MA</span>
+              SCREE<span className="text-red-500">MA</span>
             </span>
           </Link>
 
+          {/* MIDDLE: Navigation Links */}
           <nav className="hidden md:flex items-center gap-8">
             <Link 
               to="/" 
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Now Showing
+              Home
             </Link>
             <Link 
-              to="/coming-soon" 
+              to="/movies" 
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Coming Soon
+              Movies
             </Link>
             <Link 
-              to="/theaters" 
+              to="/cinemas" 
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Theaters
+              Cinemas
             </Link>
             <Link 
               to="/offers" 
@@ -69,165 +81,162 @@ const Header = () => {
             >
               Offers
             </Link>
+            <Link 
+              to="/rewards" 
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Rewards
+            </Link>
           </nav>
 
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="hidden md:flex"
-              onClick={() => setSearchOpen(true)}
+          {/* RIGHT: Search + Auth */}
+          <div className="flex items-center gap-4">
+            {/* Search Icon */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSearchClick}
+              className="text-muted-foreground hover:text-foreground"
             >
               <Search className="w-5 h-5" />
             </Button>
-            
+
+            {/* Auth State */}
             {loading ? (
-              <Button variant="ghost" size="icon" disabled>
-                <Loader2 className="w-5 h-5 animate-spin" />
-              </Button>
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
             ) : user ? (
-              <>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="cinema" size="sm" className="hidden sm:flex min-w-[120px] justify-start">
-                      <User className="w-4 h-4 mr-2 flex-shrink-0" />
-                      <span className="truncate">
-                        {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Account'}
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
+              /* Logged In: Profile Avatar */
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-64" align="end" forceMount>
+                  {/* User Info Header */}
+                  <div className="flex flex-col space-y-1 p-3 border-b border-border">
+                    <p className="text-sm font-medium leading-none">
+                      {user.user_metadata?.full_name || 'User'}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                  
+                  {/* Main Actions */}
+                  <div className="py-1">
+                    <DropdownMenuItem asChild>
+                      <Link to="/dashboard" className="cursor-pointer">
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mr-3">
+                            <User className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <div className="font-medium">Dashboard</div>
+                            <div className="text-xs text-muted-foreground">Bookings & overview</div>
+                          </div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem asChild>
+                      <Link to="/notifications" className="cursor-pointer">
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mr-3">
+                            <Bell className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <div className="font-medium">Notifications</div>
+                            <div className="text-xs text-muted-foreground">Movie updates & alerts</div>
+                          </div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem asChild>
+                      <Link to="/my-cinema-points" className="cursor-pointer">
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center mr-3">
+                            <Star className="h-4 w-4 text-accent" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium">My Cinema Points</div>
+                            <div className="text-xs text-muted-foreground">⭐ 1,250 points</div>
+                          </div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem asChild>
+                      <Link to="/settings" className="cursor-pointer">
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center mr-3">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <div className="font-medium">Settings</div>
+                            <div className="text-xs text-muted-foreground">Account & preferences</div>
+                          </div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                  </div>
+                  
+                  {/* Optional Actions */}
+                  <div className="py-1 border-t border-border">
                     <DropdownMenuItem asChild>
                       <Link to="/bookings" className="cursor-pointer">
-                        <LayoutDashboard className="w-4 h-4 mr-2" />
-                        Dashboard
+                        <Ticket className="mr-3 h-4 w-4" />
+                        <span>Booking History</span>
                       </Link>
                     </DropdownMenuItem>
+                    
                     <DropdownMenuItem asChild>
-                      <Link to="/profile" className="cursor-pointer">
-                        <Settings className="w-4 h-4 mr-2" />
-                        Profile Settings
+                      <Link to="/watchlist" className="cursor-pointer">
+                        <Heart className="mr-3 h-4 w-4" />
+                        <span>Watchlist</span>
                       </Link>
                     </DropdownMenuItem>
+                  </div>
+                  
+                  {/* Support & Logout */}
+                  <DropdownMenuSeparator />
+                  <div className="py-1">
                     <DropdownMenuItem asChild>
-                      <Link to="/help" className="cursor-pointer">
-                        <HelpCircle className="w-4 h-4 mr-2" />
-                        Help & Support
+                      <Link to="/support" className="cursor-pointer text-muted-foreground">
+                        <div className="flex items-center text-xs">
+                          <div className="w-6 h-6 flex items-center justify-center mr-2">
+                            <span>?</span>
+                          </div>
+                          <span>Help & Support</span>
+                        </div>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Sign Out
+                    
+                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive focus:text-destructive">
+                      <LogOut className="mr-3 h-4 w-4" />
+                      <span>Sign Out</span>
                     </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-              <>
-                <Button variant="cinema" size="sm" className="hidden sm:flex" asChild>
-                  <Link to="/auth">
-                    <User className="w-4 h-4" />
-                    Sign In
-                  </Link>
+              /* Not Logged In: Sign In Button */
+              <Link to="/auth">
+                <Button variant="outline" size="sm">
+                  Sign In
                 </Button>
-              </>
+              </Link>
             )}
           </div>
         </div>
       </div>
-
-      {/* Search Dialog */}
-      <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Search Movies</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                placeholder="Search for movies..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 text-lg"
-                autoFocus
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {/* Search Results */}
-            <div className="max-h-[400px] overflow-y-auto space-y-2">
-              {searchQuery.trim() === "" ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Start typing to search for movies</p>
-                </div>
-              ) : (
-                <>
-                  {movies
-                    .filter((movie) =>
-                      movie.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      movie.genre.some((g) => g.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                      movie.description.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map((movie) => (
-                      <button
-                        key={movie.id}
-                        onClick={() => {
-                          navigate(`/movie/${movie.id}`);
-                          setSearchOpen(false);
-                          setSearchQuery("");
-                        }}
-                        className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-muted transition-colors text-left"
-                      >
-                        <img
-                          src={movie.poster}
-                          alt={movie.title}
-                          className="w-16 h-24 object-cover rounded-lg"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold truncate">{movie.title}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {movie.genre.join(", ")} • {movie.duration} min
-                          </p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary font-medium">
-                              ⭐ {movie.rating}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {movie.releaseDate}
-                            </span>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  
-                  {movies.filter((movie) =>
-                    movie.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    movie.genre.some((g) => g.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                    movie.description.toLowerCase().includes(searchQuery.toLowerCase())
-                  ).length === 0 && (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p>No movies found for "{searchQuery}"</p>
-                      <p className="text-sm mt-2">Try searching with different keywords</p>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      
+      <SearchModal open={searchOpen} onOpenChange={setSearchOpen} />
     </header>
   );
 };

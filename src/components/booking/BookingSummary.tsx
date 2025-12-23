@@ -1,21 +1,22 @@
 import { Seat, Showtime, Movie } from "@/types/cinema";
 import { theaters } from "@/data/movies";
-import { Ticket, MapPin, Clock, Calendar, CreditCard } from "lucide-react";
+import { Ticket, MapPin, Clock, Calendar, CreditCard, Coffee } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/lib/utils";
+import { SelectedSnack } from "./SnacksSection";
 
 interface BookingSummaryProps {
   movie: Movie;
   showtime: Showtime | null;
   selectedSeats: Seat[];
+  selectedSnacks?: SelectedSnack[];
   onConfirm: () => void;
 }
 
-const BookingSummary = ({ movie, showtime, selectedSeats, onConfirm }: BookingSummaryProps) => {
+const BookingSummary = ({ movie, showtime, selectedSeats, selectedSnacks = [], onConfirm }: BookingSummaryProps) => {
   const theater = showtime ? theaters.find(t => t.id === showtime.theaterId) : null;
   const screen = theater?.screens.find(s => s.id === showtime?.screenId);
 
-  const calculateTotal = () => {
+  const calculateTicketsTotal = () => {
     if (!showtime) return 0;
     return selectedSeats.reduce((total, seat) => {
       const price = seat.type === 'vip' 
@@ -27,9 +28,15 @@ const BookingSummary = ({ movie, showtime, selectedSeats, onConfirm }: BookingSu
     }, 0);
   };
 
-  const total = calculateTotal();
-  const serviceFee = 150; // Fixed KSh 150 service fee
-  const grandTotal = total + serviceFee;
+  const calculateSnacksTotal = () => {
+    return selectedSnacks.reduce((total, snack) => total + (snack.price * snack.quantity), 0);
+  };
+
+  const ticketsTotal = calculateTicketsTotal();
+  const snacksTotal = calculateSnacksTotal();
+  const subtotal = ticketsTotal + snacksTotal;
+  const serviceFee = subtotal * 0.1;
+  const grandTotal = subtotal + serviceFee;
 
   return (
     <div className="glass rounded-xl p-6 sticky top-24">
@@ -107,20 +114,47 @@ const BookingSummary = ({ movie, showtime, selectedSeats, onConfirm }: BookingSu
         </div>
       )}
 
-      {/* Price Breakdown */}
-      {selectedSeats.length > 0 && showtime && (
-        <div className="space-y-2 mb-6">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Tickets ({selectedSeats.length})</span>
-            <span>{formatCurrency(total)}</span>
+      {/* Selected Snacks */}
+      {selectedSnacks.length > 0 && (
+        <div className="mb-6 pb-6 border-b border-border/50">
+          <div className="flex items-center gap-2 mb-3">
+            <Coffee className="w-4 h-4 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Selected Snacks</p>
           </div>
+          <div className="space-y-2">
+            {selectedSnacks.map((snack) => (
+              <div key={snack.id} className="flex justify-between items-center text-sm">
+                <span className="flex-1">{snack.name}</span>
+                <span className="text-muted-foreground mx-2">×{snack.quantity}</span>
+                <span className="font-medium">KES {snack.price * snack.quantity}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Price Breakdown */}
+      {(selectedSeats.length > 0 || selectedSnacks.length > 0) && showtime && (
+        <div className="space-y-2 mb-6">
+          {selectedSeats.length > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Tickets ({selectedSeats.length})</span>
+              <span>KES {ticketsTotal.toFixed(2)}</span>
+            </div>
+          )}
+          {selectedSnacks.length > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Snacks ({selectedSnacks.reduce((sum, s) => sum + s.quantity, 0)})</span>
+              <span>KES {snacksTotal.toFixed(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Service Fee</span>
-            <span>{formatCurrency(serviceFee)}</span>
+            <span>KES {serviceFee.toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-semibold text-lg pt-2 border-t border-border/50">
             <span>Total</span>
-            <span className="text-primary">{formatCurrency(grandTotal)}</span>
+            <span className="text-primary">KES {grandTotal.toFixed(2)}</span>
           </div>
         </div>
       )}

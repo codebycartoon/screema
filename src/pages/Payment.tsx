@@ -11,7 +11,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Helmet } from 'react-helmet-async';
-import { formatCurrency } from '@/lib/utils';
 
 interface BookingData {
   movieId: string;
@@ -34,9 +33,13 @@ const Payment = () => {
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
   const [cardName, setCardName] = useState('');
-  const [mpesaNumber, setMpesaNumber] = useState('');
 
   const bookingData = location.state as BookingData | null;
+
+  // Ensure page starts at top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -78,122 +81,41 @@ const Payment = () => {
   };
 
   const handlePayment = async () => {
-    console.log('Payment started', { bookingData, user });
     setIsProcessing(true);
 
+    // Simulate payment processing
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     try {
-      // Validate data
-      if (!bookingData) {
-        throw new Error('No booking data found. Please select seats again.');
-      }
-      
-      if (!user) {
-        throw new Error('Please sign in to complete booking.');
-      }
-
-      if (!bookingData.seats || bookingData.seats.length === 0) {
-        throw new Error('No seats selected. Please select seats.');
-      }
-
-      // Simulate payment processing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Generate QR code
-      const qrCode = `QR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
-      
-      // Try to save to database, but don't fail if it doesn't work
-      let savedBooking = null;
-      
-      try {
-        // Get first available showtime from database
-        const { data: showtimes, error: showtimeError } = await supabase
-          .from('showtimes')
-          .select('id')
-          .limit(1)
-          .single();
-
-        if (showtimeError) {
-          console.warn('⚠️ No showtimes found in database. Run supabase-seed-data.sql to populate data.');
-          console.warn('Booking will be saved to localStorage only.');
-        } else if (showtimes) {
-          const bookingData_db = {
-            user_id: user.id,
-            showtime_id: showtimes.id,
-            total_price: (bookingData.totalAmount || 0) + 150,
-            status: 'pending',
-            payment_status: 'pending',
-            qr_code: qrCode,
-          };
-          
-          console.log('✅ Saving booking to database:', bookingData_db);
-          
-          const { data, error: bookingError } = await supabase
-            .from('bookings')
-            .insert(bookingData_db)
-            .select()
-            .single();
-
-          if (!bookingError) {
-            savedBooking = data;
-            console.log('✅ Booking saved to database successfully!', savedBooking);
-          } else {
-            console.warn('❌ Database save failed:', bookingError.message);
-            console.warn('Booking will be saved to localStorage only.');
-          }
-        }
-      } catch (dbError: any) {
-        console.warn('❌ Database operation failed:', dbError?.message);
-        console.warn('Booking will be saved to localStorage only.');
-      }
-      
-      // Always save to localStorage as primary storage for demo
-      const existingBookings = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
-      
-      // Set showtime to tomorrow if it's in the past
-      let showtimeDate = bookingData.showtime ? new Date(bookingData.showtime) : new Date();
-      if (showtimeDate < new Date()) {
-        // Set to tomorrow at the same time
-        showtimeDate = new Date();
-        showtimeDate.setDate(showtimeDate.getDate() + 1);
-        showtimeDate.setHours(19, 30, 0, 0); // Default to 7:30 PM tomorrow
-      }
-      
-      const newBooking = {
-        id: savedBooking?.id || Date.now().toString(),
-        user_id: user.id,
+      const bookingInsert = {
+        user_id: user!.id,
+        movie_id: bookingData.movieId,
         movie_title: bookingData.movieTitle,
         movie_poster: bookingData.moviePoster,
         theater_name: bookingData.theaterName,
         screen_name: bookingData.screenName,
-        showtime: showtimeDate.toISOString(),
+        showtime: bookingData.showtime.toISOString(),
         seats: bookingData.seats,
-        total_price: (bookingData.totalAmount || 0) + 150,
-        total_amount: (bookingData.totalAmount || 0) + 150,
-        payment_status: 'pending',
+        total_amount: bookingData.totalAmount,
+        payment_status: 'completed',
         payment_method: paymentMethod,
-        qr_code: qrCode,
-        status: 'pending',
-        created_at: new Date().toISOString(),
+        qr_code: `QR-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`,
       };
-      existingBookings.push(newBooking);
-      localStorage.setItem('demo_bookings', JSON.stringify(existingBookings));
+      
+      const { error } = await supabase.from('bookings').insert(bookingInsert as any);
 
-      console.log('Booking saved successfully');
+      if (error) throw error;
 
       toast({
-        title: 'Payment Successful! 🎉',
+        title: 'Payment Successful!',
         description: 'Your tickets have been booked. Check your bookings for the QR code.',
       });
 
-      // Navigate to bookings
-      setTimeout(() => {
-        navigate('/bookings');
-      }, 500);
-    } catch (error: any) {
-      console.error('Payment error:', error);
+      navigate('/bookings');
+    } catch (error) {
       toast({
         title: 'Payment Failed',
-        description: error?.message || 'Something went wrong. Please try again.',
+        description: 'Something went wrong. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -201,25 +123,8 @@ const Payment = () => {
     }
   };
 
-  const serviceFee = 150; // KSh 150 service fee
+  const serviceFee = 1.5;
   const grandTotal = bookingData.totalAmount + serviceFee;
-
-  // Validation for payment button
-  const isPaymentValid = () => {
-    if (paymentMethod === 'card') {
-      return (
-        cardName.trim() !== '' &&
-        cardNumber.replace(/\s/g, '').length >= 13 &&
-        expiryDate.length === 5 &&
-        cvv.length >= 3
-      );
-    } else if (paymentMethod === 'mpesa') {
-      return mpesaNumber.length === 9;
-    } else if (paymentMethod === 'wallet') {
-      return true; // E-wallet doesn't require fields
-    }
-    return false;
-  };
 
   return (
     <>
@@ -274,62 +179,59 @@ const Payment = () => {
                   >
                     <RadioGroupItem value="wallet" id="wallet" className="sr-only" />
                     <Wallet className="w-6 h-6" />
-                    <span className="text-sm font-medium">E-Wallet</span>
+                    <span className="text-sm font-medium">Wallet</span>
                   </Label>
 
                   <Label
-                    htmlFor="mpesa"
+                    htmlFor="upi"
                     className={`flex flex-col items-center gap-2 p-4 rounded-xl border cursor-pointer transition-all ${
-                      paymentMethod === 'mpesa'
+                      paymentMethod === 'upi'
                         ? 'border-primary bg-primary/10'
                         : 'border-border/50 hover:border-primary/50'
                     }`}
                   >
-                    <RadioGroupItem value="mpesa" id="mpesa" className="sr-only" />
+                    <RadioGroupItem value="upi" id="upi" className="sr-only" />
                     <Smartphone className="w-6 h-6" />
-                    <span className="text-sm font-medium">M-PESA</span>
+                    <span className="text-sm font-medium">UPI</span>
                   </Label>
                 </RadioGroup>
 
                 {paymentMethod === 'card' && (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="cardName">Cardholder Name *</Label>
+                      <Label htmlFor="cardName">Cardholder Name</Label>
                       <Input
                         id="cardName"
                         placeholder="John Doe"
                         value={cardName}
                         onChange={(e) => setCardName(e.target.value)}
-                        required
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="cardNumber">Card Number *</Label>
+                      <Label htmlFor="cardNumber">Card Number</Label>
                       <Input
                         id="cardNumber"
                         placeholder="4242 4242 4242 4242"
                         value={cardNumber}
                         onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                         maxLength={19}
-                        required
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="expiry">Expiry Date *</Label>
+                        <Label htmlFor="expiry">Expiry Date</Label>
                         <Input
                           id="expiry"
                           placeholder="MM/YY"
                           value={expiryDate}
                           onChange={(e) => setExpiryDate(formatExpiry(e.target.value))}
                           maxLength={5}
-                          required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="cvv">CVV *</Label>
+                        <Label htmlFor="cvv">CVV</Label>
                         <Input
                           id="cvv"
                           placeholder="123"
@@ -337,7 +239,6 @@ const Payment = () => {
                           onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
                           maxLength={4}
                           type="password"
-                          required
                         />
                       </div>
                     </div>
@@ -347,31 +248,18 @@ const Payment = () => {
                 {paymentMethod === 'wallet' && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Wallet className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Demo e-wallet payment - Click "Pay Now" to simulate</p>
+                    <p>Demo wallet payment - Click "Pay Now" to simulate</p>
                   </div>
                 )}
 
-                {paymentMethod === 'mpesa' && (
+                {paymentMethod === 'upi' && (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="mpesaNumber">M-PESA Phone Number *</Label>
-                      <div className="flex gap-2">
-                        <div className="flex items-center px-3 rounded-lg border border-border bg-muted text-muted-foreground font-medium">
-                          +254
-                        </div>
-                        <Input
-                          id="mpesaNumber"
-                          placeholder="712345678"
-                          value={mpesaNumber}
-                          onChange={(e) => setMpesaNumber(e.target.value.replace(/\D/g, '').slice(0, 9))}
-                          maxLength={9}
-                          className="flex-1"
-                          required
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Enter your Safaricom M-PESA number (9 digits after +254)
-                      </p>
+                      <Label htmlFor="upiId">UPI ID</Label>
+                      <Input
+                        id="upiId"
+                        placeholder="yourname@upi"
+                      />
                     </div>
                   </div>
                 )}
@@ -423,15 +311,15 @@ const Payment = () => {
                 <div className="border-t border-border/50 pt-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Tickets ({bookingData.seats.length})</span>
-                    <span>{formatCurrency(bookingData.totalAmount)}</span>
+                    <span>${bookingData.totalAmount.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Service Fee</span>
-                    <span>{formatCurrency(serviceFee)}</span>
+                    <span>${serviceFee.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg pt-2 border-t border-border/50">
                     <span>Total</span>
-                    <span className="text-primary">{formatCurrency(grandTotal)}</span>
+                    <span className="text-primary">${grandTotal.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -439,7 +327,7 @@ const Payment = () => {
                   variant="cinema"
                   className="w-full mt-6"
                   onClick={handlePayment}
-                  disabled={isProcessing || !isPaymentValid()}
+                  disabled={isProcessing}
                 >
                   {isProcessing ? (
                     <>
@@ -449,17 +337,10 @@ const Payment = () => {
                   ) : (
                     <>
                       <Check className="w-4 h-4 mr-2" />
-                      Pay {formatCurrency(grandTotal)}
+                      Pay ${grandTotal.toFixed(2)}
                     </>
                   )}
                 </Button>
-                
-                {!isPaymentValid() && !isProcessing && (
-                  <p className="text-xs text-center text-muted-foreground mt-3">
-                    {paymentMethod === 'card' && 'Please fill in all card details'}
-                    {paymentMethod === 'mpesa' && 'Please enter a valid M-PESA number'}
-                  </p>
-                )}
               </div>
             </div>
           </div>

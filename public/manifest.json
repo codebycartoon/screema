@@ -1,0 +1,22 @@
+{
+  "name": "SCREEMA - Premium Cinema Experience",
+  "short_name": "SCREEMA",
+  "description": "Book movie tickets, explore showtimes, and enjoy premium cinema experiences in Mombasa, Kenya",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#1a1a1a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/screema.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

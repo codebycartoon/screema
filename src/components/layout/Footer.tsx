@@ -1,79 +1,107 @@
-import { Film, MapPin, Phone, Mail } from "lucide-react";
+import { Film, Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
     <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Brand */}
-          <div className="md:col-span-1">
+          <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-4">
               <Film className="w-8 h-8 text-primary" />
               <span className="font-display text-xl font-semibold">
-                SCREE<span className="text-primary">MA</span>
+                SCREE<span className="text-red-500">MA</span>
               </span>
             </Link>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
               Your premium destination for the ultimate cinema experience. Book tickets, choose seats, and enjoy movies like never before.
             </p>
+
+            {/* Social Links */}
+            <div className="flex gap-4">
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <Facebook className="w-5 h-5" />
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <Twitter className="w-5 h-5" />
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <Instagram className="w-5 h-5" />
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <Youtube className="w-5 h-5" />
+              </a>
+            </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Company */}
           <div>
-            <h4 className="font-display font-semibold mb-4">Movies</h4>
+            <h4 className="font-display font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">Now Showing</Link></li>
-              <li><Link to="/coming-soon" className="text-muted-foreground hover:text-foreground transition-colors">Coming Soon</Link></li>
-              <li><Link to="/offers" className="text-muted-foreground hover:text-foreground transition-colors">Offers & Promotions</Link></li>
-              <li><Link to="/gift-cards" className="text-muted-foreground hover:text-foreground transition-colors">Gift Cards</Link></li>
+              <li><Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors">About Us</Link></li>
+              <li><Link to="/careers" className="text-muted-foreground hover:text-foreground transition-colors">Careers</Link></li>
+              <li><Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">Contact</Link></li>
+              <li><Link to="/press" className="text-muted-foreground hover:text-foreground transition-colors">Press</Link></li>
             </ul>
           </div>
 
-          {/* Theaters */}
+          {/* Explore */}
           <div>
-            <h4 className="font-display font-semibold mb-4">Theaters</h4>
+            <h4 className="font-display font-semibold mb-4">Explore</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/theaters" className="text-muted-foreground hover:text-foreground transition-colors">Find a Theater</Link></li>
-              <li><Link to="/imax" className="text-muted-foreground hover:text-foreground transition-colors">IMAX Experience</Link></li>
-              <li><Link to="/dolby" className="text-muted-foreground hover:text-foreground transition-colors">Dolby Cinema</Link></li>
-              <li><Link to="/4dx" className="text-muted-foreground hover:text-foreground transition-colors">4DX</Link></li>
+              <li><Link to="/movies" className="text-muted-foreground hover:text-foreground transition-colors">Movies</Link></li>
+              <li><Link to="/cinemas" className="text-muted-foreground hover:text-foreground transition-colors">Cinemas</Link></li>
+              <li><Link to="/offers" className="text-muted-foreground hover:text-foreground transition-colors">Offers</Link></li>
+              <li><Link to="/rewards" className="text-muted-foreground hover:text-foreground transition-colors">Rewards</Link></li>
             </ul>
           </div>
 
-          {/* Support */}
-          <div>
-            <h4 className="font-display font-semibold mb-4">Support</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="/help" className="text-muted-foreground hover:text-foreground transition-colors">Help Center</Link></li>
-              <li><Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">Contact Us</Link></li>
-              <li><Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link></li>
-              <li><Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link></li>
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h4 className="font-display font-semibold mb-4">Contact</h4>
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                <span>Mombasa, Kenya</span>
+          {/* Support & Contact */}
+          <div className="lg:col-span-2">
+            <div className="flex flex-col lg:flex-row lg:gap-8">
+              {/* Support Links */}
+              <div className="flex-1">
+                <h4 className="font-display font-semibold mb-4">Support</h4>
+                <ul className="space-y-2 text-sm">
+                  <li><Link to="/help" className="text-muted-foreground hover:text-foreground transition-colors">FAQs</Link></li>
+                  <li><Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms</Link></li>
+                  <li><Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link></li>
+                  <li><Link to="/accessibility" className="text-muted-foreground hover:text-foreground transition-colors">Accessibility</Link></li>
+                </ul>
               </div>
-              <div className="flex items-start gap-2">
-                <Phone className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                <a href="tel:+254714840103" className="hover:text-foreground transition-colors">+254 714 840 103</a>
-              </div>
-              <div className="flex items-start gap-2">
-                <Mail className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                <a href="mailto:franklineonguti4@gmail.com" className="hover:text-foreground transition-colors break-all">franklineonguti4@gmail.com</a>
+              
+              {/* Contact Info */}
+              <div className="flex-1 mt-8 lg:mt-0">
+                <h4 className="font-display font-semibold mb-4">Contact Info</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Phone className="w-4 h-4" />
+                    <span>+254 714840103</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Mail className="w-4 h-4" />
+                    <span>support@screema.com</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="w-4 h-4" />
+                    <span>Mombasa, Kenya</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>© 2024 SCREEMA. All rights reserved. Built by Frankline Onguti.</p>
+        <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-muted-foreground">
+            © 2024 SCREEMA. All rights reserved. Built by Frankline Onguti.
+          </p>
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <span>Made with ❤️ in Kenya</span>
+            <span>•</span>
+            <span>Powered by innovation</span>
+          </div>
         </div>
       </div>
     </footer>
